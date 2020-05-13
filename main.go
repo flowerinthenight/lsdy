@@ -29,6 +29,8 @@ var (
 	rolearn  string
 	pk       string
 	sk       string
+	incols   []string
+	excols   []string
 	out      string
 	describe bool
 	maxlen   int
@@ -36,8 +38,17 @@ var (
 	rootCmd = &cobra.Command{
 		Use:   "lsdy <table>",
 		Short: "dynamodb query tool",
-		Long:  "DynamoDB query tool.",
-		RunE:  run,
+		Long: `DynamoDB query tool.
+
+To authenticate to AWS, you can set the following environment variables:
+  AWS_REGION
+  AWS_ACCESS_KEY_ID
+  AWS_SECRET_ACCESS_KEY
+  ROLE_ARN
+
+You can also specify them using the provided flags (see -h). If ROLE_ARN (--rolearn)
+is specified, this tool will assume that role using the provided key/secret pair.`,
+		RunE: run,
 	}
 )
 
@@ -286,9 +297,13 @@ func run(cmd *cobra.Command, args []string) error {
 
 	lbl := make(map[string]struct{})
 	sortedlbl := []string{}
-	for _, maps := range m {
-		for k, _ := range maps {
-			lbl[k] = struct{}{}
+	if len(incols) > 0 {
+		sortedlbl = incols
+	} else {
+		for _, maps := range m {
+			for k, _ := range maps {
+				lbl[k] = struct{}{}
+			}
 		}
 	}
 
@@ -324,9 +339,10 @@ func main() {
 	rootCmd.Flags().StringVar(&region, "region", os.Getenv("AWS_REGION"), "region")
 	rootCmd.Flags().StringVar(&key, "key", os.Getenv("AWS_ACCESS_KEY_ID"), "access key")
 	rootCmd.Flags().StringVar(&secret, "secret", os.Getenv("AWS_SECRET_ACCESS_KEY"), "secret access key")
-	rootCmd.Flags().StringVar(&rolearn, "rolearn", rolearn, "if not empty, the role to assume using the provided key/secret")
+	rootCmd.Flags().StringVar(&rolearn, "rolearn", os.Getenv("ROLE_ARN"), "if not empty, the role to assume using the provided key/secret")
 	rootCmd.Flags().StringVar(&pk, "pk", pk, "primary key to query, format: [key:value] (if empty, scan is implied)")
 	rootCmd.Flags().StringVar(&sk, "sk", sk, "sort key if any, format: [key:value] (begins_with will be used if not empty)")
+	rootCmd.Flags().StringSliceVar(&incols, "attr", incols, "attributes (columns) to include")
 	rootCmd.Flags().StringVar(&out, "out", out, "if provided, output to csv with value as filename (.csv appended)")
 	rootCmd.Flags().BoolVar(&describe, "describe", describe, "if true, describe the table only")
 	rootCmd.Flags().IntVar(&maxlen, "maxlen", 20, "max len of each cell")
