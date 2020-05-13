@@ -34,3 +34,9 @@ ROLE_ARN
 
 # When ROLE_ARN is set, it will assume this role using the provided key/secret pair.
 ```
+
+To query a table using a primary key:
+```bash
+# Query table with primary key 'id' value of 'ID0001':
+$ lsdy TABLE_NAME --pk "id:ID0001"
+```
