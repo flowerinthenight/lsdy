@@ -52,10 +52,10 @@ To scan a table:
 # All attributes (columns) will be queried:
 $ lsdy TABLE_NAME
 
-# If you want specific attributes (not sorted):
+# If you want specific attributes (unsorted columns):
 $ lsdy TABLE_NAME --attr "col1,col2,col3" --nosort
 
-# or you can write it this way (sorted):
+# or you can write it this way (sorted columns):
 $ lsdy TABLE_NAME --attr col1 --attr col2 --attr col3
 ```
 
