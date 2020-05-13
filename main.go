@@ -279,7 +279,6 @@ func run(cmd *cobra.Command, args []string) error {
 		}
 
 		log.Println(t)
-		return nil
 	}
 
 	var items []map[string]*dynamodb.AttributeValue
@@ -312,6 +311,15 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	sort.Strings(sortedlbl)
+	if describe {
+		log.Println("")
+		log.Println("Attributes:")
+		for _, v := range sortedlbl {
+			log.Println("-", v)
+		}
+		return nil
+	}
+
 	var lbls []interface{}
 	for _, v := range sortedlbl {
 		lbls = append(lbls, v)
