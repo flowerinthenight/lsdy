@@ -241,11 +241,11 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	var b bytes.Buffer
-	wb := bufio.NewWriter(&b)
-	h := tabwriter.NewWriter(wb, 0, 4, 4, ' ', 0)
+	bw := bufio.NewWriter(&b)
+	h := tabwriter.NewWriter(bw, 0, 4, 4, ' ', 0)
 	defer func() {
 		h.Flush()
-		wb.Flush()
+		bw.Flush()
 		fmt.Printf("%v", b.String())
 	}()
 
