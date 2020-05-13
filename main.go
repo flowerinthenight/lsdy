@@ -132,7 +132,6 @@ func GetItems(svc *dynamodb.DynamoDB, table, pk, sk string) ([]map[string]*dynam
 	return query(svc, table, input)
 }
 
-// GetGsiItems is a generic function for reading items using a GSI.
 func GetGsiItems(svc *dynamodb.DynamoDB, table, index, key, value string) ([]map[string]*dynamodb.AttributeValue, error) {
 	input := dynamodb.QueryInput{
 		TableName:              aws.String(table),
