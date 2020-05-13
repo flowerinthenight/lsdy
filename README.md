@@ -53,7 +53,7 @@ To scan a table:
 $ lsdy TABLE_NAME
 
 # If you want specific attributes:
-$ lsdy TABLE_NAME --attr "col1,col2,col3"
+$ lsdy TABLE_NAME --attr "col1,col2,col3" --nosort
 
 # or you can write it this way:
 $ lsdy TABLE_NAME --attr col1 --attr col2 --attr col3
