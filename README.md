@@ -2,7 +2,7 @@
 
 ## Overview
 
-`lsdy` is a tool for querying DynamoDB tables.
+`lsdy` is a tool for querying [DynamoDB](https://aws.amazon.com/dynamodb/) tables.
 
 ## Installation
 
