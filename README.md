@@ -52,7 +52,7 @@ To scan a table:
 # All attributes (columns) will be queried:
 $ lsdy TABLE_NAME
 
-# If you want specified attributes:
+# If you want specific attributes:
 $ lsdy TABLE_NAME --attr "col1,col2,col3"
 
 # or you can write it this way:
