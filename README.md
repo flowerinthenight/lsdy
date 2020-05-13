@@ -46,3 +46,21 @@ To query a table using both a primary key and a sort key:
 # Query table with primary key 'id' value of 'ID0001' and sort key 'sortkey' of SK002:
 $ lsdy TABLE_NAME --pk "id:ID0001" --sk "sortkey:SK002"
 ```
+
+To scan a table:
+```bash
+# All attributes (columns) will be queried:
+$ lsdy TABLE_NAME
+
+# If you want specified attributes:
+$ lsdy TABLE_NAME --attr "col1,col2,col3"
+
+# or you can write it this way:
+$ lsdy TABLE_NAME --attr col1 --attr col2 attr col3
+```
+
+If you want to describe a table:
+```bash
+# Will output the table details and all its attributes/columns:
+$ lsdy TABLE_NAME --describe
+```
