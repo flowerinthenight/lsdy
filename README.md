@@ -56,7 +56,7 @@ $ lsdy TABLE_NAME
 $ lsdy TABLE_NAME --attr "col1,col2,col3"
 
 # or you can write it this way:
-$ lsdy TABLE_NAME --attr col1 --attr col2 attr col3
+$ lsdy TABLE_NAME --attr col1 --attr col2 --attr col3
 ```
 
 If you want to describe a table:
