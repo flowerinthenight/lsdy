@@ -1,0 +1,43 @@
+version: 2
+jobs:
+  build:
+    docker:
+    - image: circleci/golang:1.14
+    working_directory: /go/src/github.com/flowerinthenight/lsdy/
+    steps:
+    - checkout
+    - run:
+        name: build
+        shell: /bin/bash
+        command: |
+          GO111MODULE=on go build -v
+
+  build-deploy:
+    docker:
+    - image: circleci/golang:1.14
+    working_directory: /go/src/github.com/flowerinthenight/lsdy/
+    steps:
+    - checkout
+    - run:
+        name: buildanddeploy
+        shell: /bin/bash
+        command: |
+          GO111MODULE=on go build -v
+          tar cvzf lsdy-${CIRCLE_TAG}-linux-amd64.tar.gz lsdy
+          ls -laF
+          go get -u -v github.com/tcnksm/ghr
+          ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./lsdy-${CIRCLE_TAG}-linux-amd64.tar.gz
+
+workflows:
+  version: 2
+  untagged-build:
+    jobs:
+    - build
+  tagged-build:
+    jobs:
+    - build-deploy:
+        filters:
+          tags:
+            only: /^v.*/
+          branches:
+              ignore: /.*/
