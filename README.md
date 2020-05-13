@@ -18,3 +18,7 @@ $ go get -u -v github.com/flowerinthenight/lsdy
 ```
 
 ## Usage
+For a more updated help information:
+```bash
+$ lsdy -h
+```
