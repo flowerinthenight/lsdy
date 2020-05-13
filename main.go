@@ -350,7 +350,7 @@ func main() {
 	rootCmd.Flags().StringVar(&pk, "pk", pk, "primary key to query, format: [key:value] (if empty, scan is implied)")
 	rootCmd.Flags().StringVar(&sk, "sk", sk, "sort key if any, format: [key:value] (begins_with will be used if not empty)")
 	rootCmd.Flags().StringSliceVar(&incols, "attr", incols, "attributes (columns) to include")
-	rootCmd.Flags().StringVar(&out, "out", out, "if provided, output to csv with value as filename (.csv appended)")
+	// rootCmd.Flags().StringVar(&out, "out", out, "if provided, output to csv with value as filename (.csv appended)")
 	rootCmd.Flags().BoolVar(&describe, "describe", describe, "if true, describe the table only")
 	rootCmd.Flags().IntVar(&maxlen, "maxlen", 20, "max len of each cell")
 	rootCmd.Execute()
