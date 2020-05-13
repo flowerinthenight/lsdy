@@ -64,3 +64,5 @@ If you want to describe a table:
 # Will output the table details and all its attributes/columns:
 $ lsdy TABLE_NAME --describe
 ```
+
+By default, the length of all cell items in the output table are concatenated up to `--maxlen`.
