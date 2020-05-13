@@ -252,7 +252,6 @@ func run(cmd *cobra.Command, args []string) error {
 		var f string
 		for i, vv := range v {
 			val := fmt.Sprintf("%v", vv)
-			val = strings.TrimSuffix(strings.TrimPrefix(val, " "), " ")
 			if val == "" {
 				val = "-"
 			}
@@ -286,6 +285,10 @@ func run(cmd *cobra.Command, args []string) error {
 		items, err = GetItems(svc, args[0], pk, sk)
 	} else {
 		items, err = ScanItems(svc, args[0])
+	}
+
+	if err != nil {
+		return err
 	}
 
 	err = dynamodbattribute.UnmarshalListOfMaps(items, &m)
