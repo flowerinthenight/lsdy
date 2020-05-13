@@ -199,6 +199,7 @@ func ScanItems(svc *dynamodb.DynamoDB, table string) ([]map[string]*dynamodb.Att
 
 func run(cmd *cobra.Command, args []string) error {
 	log.SetFlags(0)
+	log.SetOutput(os.Stdout)
 	if len(args) == 0 {
 		return fmt.Errorf("<table> cannot be empty")
 	}
