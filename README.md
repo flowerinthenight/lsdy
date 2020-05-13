@@ -40,3 +40,9 @@ To query a table using a primary key:
 # Query table with primary key 'id' value of 'ID0001':
 $ lsdy TABLE_NAME --pk "id:ID0001"
 ```
+
+To query a table using both a primary key and a sort key:
+```bash
+# Query table with primary key 'id' value of 'ID0001' and sort key 'sortkey' of SK002:
+$ lsdy TABLE_NAME --pk "id:ID0001" --sk "sortkey:SK002"
+```
