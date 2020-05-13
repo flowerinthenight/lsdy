@@ -30,9 +30,9 @@ var (
 	pk       string
 	sk       string
 	incols   []string
-	excols   []string
-	out      string
 	describe bool
+	nosort   bool
+	out      string
 	maxlen   int
 
 	rootCmd = &cobra.Command{
@@ -276,7 +276,6 @@ func run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-
 		log.Println(t)
 	}
 
@@ -313,7 +312,10 @@ func run(cmd *cobra.Command, args []string) error {
 		sortedlbl = append(sortedlbl, k)
 	}
 
-	sort.Strings(sortedlbl)
+	if !nosort {
+		sort.Strings(sortedlbl)
+	}
+
 	if describe {
 		log.Println("")
 		log.Println("Attributes:")
@@ -338,7 +340,6 @@ func run(cmd *cobra.Command, args []string) error {
 				toadd = append(toadd, "-")
 			}
 		}
-
 		addLine(h, toadd)
 	}
 
@@ -354,8 +355,9 @@ func main() {
 	rootCmd.Flags().StringVar(&pk, "pk", pk, "primary key to query, format: [key:value] (if empty, scan is implied)")
 	rootCmd.Flags().StringVar(&sk, "sk", sk, "sort key if any, format: [key:value] (begins_with will be used if not empty)")
 	rootCmd.Flags().StringSliceVar(&incols, "attr", incols, "attributes (columns) to include")
-	// rootCmd.Flags().StringVar(&out, "out", out, "if provided, output to csv with value as filename (.csv appended)")
 	rootCmd.Flags().BoolVar(&describe, "describe", describe, "if true, describe the table only")
+	rootCmd.Flags().BoolVar(&nosort, "nosort", nosort, "if true, don't sort the attributes")
+	// rootCmd.Flags().StringVar(&out, "out", out, "if provided, output to csv with value as filename (.csv appended)")
 	rootCmd.Flags().IntVar(&maxlen, "maxlen", 20, "max len of each cell")
 	rootCmd.Execute()
 }
