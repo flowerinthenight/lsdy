@@ -23,7 +23,7 @@ For a more updated help information:
 $ lsdy -h
 ```
 
-To authenticate to AWS, this tools looks for the following environment variables:
+To authenticate to AWS, this tool looks for the following environment variables (can be set by cmdline args as well):
 ```bash
 AWS_REGION
 AWS_ACCESS_KEY_ID
@@ -31,4 +31,6 @@ AWS_SECRET_ACCESS_KEY
 
 # Optional:
 ROLE_ARN
+
+# When ROLE_ARN is set, it will assume this role using the provided key/secret pair.
 ```
