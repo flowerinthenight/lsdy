@@ -88,5 +88,6 @@ PR's are welcome!
 - Handling data tabulation for fullwidth characters (i.e. Japanese, Chinese, etc.)
 - Better handling of JSON values in cells
 - Config file support
+- Package for Windows
 - Output to CSV (ongoing)
 - Add `--delete` option to delete the queried data (ongoing)
