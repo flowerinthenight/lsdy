@@ -91,6 +91,7 @@ PR's are welcome!
 - [ ] Handling data tabulation for fullwidth characters (i.e. Japanese, Chinese, etc.)
 - [ ] Better handling of JSON values in cells
 - [ ] Query secondary indeces
+- [ ] Support for other sort key types
 - [ ] Config file support
 - [ ] Package for Windows
 - [ ] Output to CSV (ongoing)
