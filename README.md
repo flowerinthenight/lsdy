@@ -85,9 +85,10 @@ By default, the length of all cell items in the output table are concatenated up
 ## Need help
 PR's are welcome!
 
-- Handling data tabulation for fullwidth characters (i.e. Japanese, Chinese, etc.)
-- Better handling of JSON values in cells
-- Config file support
-- Package for Windows
-- Output to CSV (ongoing)
-- Add `--delete` option to delete the queried data (ongoing)
+- [ ] Handling data tabulation for fullwidth characters (i.e. Japanese, Chinese, etc.)
+- [ ] Better handling of JSON values in cells
+- [ ] Query secondary indeces
+- [ ] Config file support
+- [ ] Package for Windows
+- [ ] Output to CSV (ongoing)
+- [ ] Add `--delete` option to delete the queried data (ongoing)
