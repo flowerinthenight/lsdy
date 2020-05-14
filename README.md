@@ -83,4 +83,6 @@ $ lsdy TABLE_NAME --describe
 By default, the length of all cell items in the output table are concatenated up to `--maxlen`.
 
 ## Need help
+PR's are welcome!
+
 - Handling data tabulation for fullwidth characters (i.e. Japanese, Chinese, etc.)
