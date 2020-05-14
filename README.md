@@ -4,7 +4,7 @@
 
 `lsdy` is a tool for querying [DynamoDB](https://aws.amazon.com/dynamodb/) tables. It will attempt to display the values in a tabular form using all available attributes (by default, alphabetical order, left to right), unless specified. If `--pk` is specified, it will query the table with that specific primary key. For tables with sort keys, only string-based sort keys are supported at the moment. When the `--sk` flag is supplied, it will query all sort keys that begins with the flag value. An empty primary key implies a table scan.
 
-The output uses Go's builtin [tabwriter](https://golang.org/pkg/text/tabwriter/) instead of the more sophisticated terminal-based UI libraries (i.e. [tcell](https://github.com/gdamore/tcell)) for easy piping into other cmdline tools (i.e. `grep`, `awk`, `wc`, etc).
+The output uses Go's builtin [tabwriter](https://golang.org/pkg/text/tabwriter/) instead of the more sophisticated terminal-based UI libraries (i.e. [tcell](https://github.com/gdamore/tcell), [goncurses](https://github.com/rthornton128/goncurses)) for easy piping into other cmdline tools (i.e. `grep`, `awk`, `wc`, etc).
 
 ## Installation
 
