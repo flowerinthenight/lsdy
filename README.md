@@ -18,8 +18,11 @@ $ go get -u -v github.com/flowerinthenight/lsdy
 ```
 
 ## Usage
-For a more updated help information:
 ```bash
+# Minimal usage:
+$ lsdy TABLE_NAME
+
+# For a more updated help information:
 $ lsdy -h
 ```
 
@@ -45,6 +48,18 @@ To query a table using both a primary key and a sort key:
 ```bash
 # Query table with primary key 'id' value of 'ID0001' and sort key 'sortkey' of SK002:
 $ lsdy TABLE_NAME --pk "id:ID0001" --sk "sortkey:SK002"
+```
+
+To query a table using multiple primary keys and optional sort key pair(s):
+```bash
+# Multiple primary keys only:
+$ lsdy TABLE_NAME --pk "id:ID0001,id:ID0002,id:ID9999"
+
+# Multiple primary keys with corresponding sort keys:
+$ lsdy TABLE_NAME --pk "id:ID0001,id:ID0002,id:ID9999" --sk "sortkey:AAA,sortkey:BBB,sortkey:CCC"
+
+# Multiple primary keys with only the first pk having a sortkey pair:
+$ lsdy TABLE_NAME --pk "id:ID0001,id:ID0002,id:ID9999" --sk "sortkey:AAA"
 ```
 
 To scan a table:
