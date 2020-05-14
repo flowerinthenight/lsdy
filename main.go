@@ -27,8 +27,8 @@ var (
 	key      string
 	secret   string
 	rolearn  string
-	pk       string
-	sk       string
+	pk       []string
+	sk       []string
 	incols   []string
 	describe bool
 	nosort   bool
@@ -47,7 +47,10 @@ To authenticate to AWS, you can set the following environment variables:
   ROLE_ARN
 
 You can also specify them using the provided flags (see -h). If ROLE_ARN (--rolearn)
-is specified, this tool will assume that role using the provided key/secret pair.`,
+is specified, this tool will assume that role using the provided key/secret pair.
+
+To query multiple pk/sk combinations, you can add more --pk flags with its corresponding
+--sk inputs (same index).`,
 		RunE: run,
 	}
 )
@@ -204,15 +207,20 @@ func run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("<table> cannot be empty")
 	}
 
-	if pk != "" {
-		if !strings.Contains(pk, ":") {
-			return fmt.Errorf("invalid --pk format: %v", pk)
+	// Validate pk and sk inputs.
+	for _, v := range pk {
+		if v != "" {
+			if !strings.Contains(v, ":") {
+				return fmt.Errorf("invalid --pk format: %v", v)
+			}
 		}
 	}
 
-	if sk != "" {
-		if !strings.Contains(sk, ":") {
-			return fmt.Errorf("invalid --sk format: %v", sk)
+	for _, v := range sk {
+		if v != "" {
+			if !strings.Contains(v, ":") {
+				return fmt.Errorf("invalid --sk format: %v", v)
+			}
 		}
 	}
 
@@ -272,23 +280,42 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	if describe {
-		t, err := svc.DescribeTable(&dynamodb.DescribeTableInput{TableName: aws.String(args[0])})
+		t, err := svc.DescribeTable(&dynamodb.DescribeTableInput{
+			TableName: aws.String(args[0]),
+		})
+
 		if err != nil {
 			return err
 		}
+
 		log.Println(t)
+		log.Println("")
 	}
 
 	var items []map[string]*dynamodb.AttributeValue
 	var m []map[string]interface{}
-	if pk != "" {
-		items, err = GetItems(svc, args[0], pk, sk)
+	if len(pk) > 0 {
+		for i, v := range pk {
+			var vv string
+			if len(sk) > 0 {
+				if i <= len(sk)-1 {
+					vv = sk[i]
+				}
+			}
+
+			qitems, err := GetItems(svc, args[0], v, vv)
+			if err != nil {
+				return err
+			}
+
+			// Accumulate results to items.
+			items = append(items, qitems...)
+		}
 	} else {
 		items, err = ScanItems(svc, args[0])
-	}
-
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	err = dynamodbattribute.UnmarshalListOfMaps(items, &m)
@@ -317,7 +344,6 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	if describe {
-		log.Println("")
 		log.Println("Attributes:")
 		for _, v := range sortedlbl {
 			log.Println("-", v)
@@ -352,8 +378,8 @@ func main() {
 	rootCmd.Flags().StringVar(&key, "key", os.Getenv("AWS_ACCESS_KEY_ID"), "access key")
 	rootCmd.Flags().StringVar(&secret, "secret", os.Getenv("AWS_SECRET_ACCESS_KEY"), "secret access key")
 	rootCmd.Flags().StringVar(&rolearn, "rolearn", os.Getenv("ROLE_ARN"), "if not empty, the role to assume using the provided key/secret")
-	rootCmd.Flags().StringVar(&pk, "pk", pk, "primary key to query, format: [key:value] (if empty, scan is implied)")
-	rootCmd.Flags().StringVar(&sk, "sk", sk, "sort key if any, format: [key:value] (begins_with will be used if not empty)")
+	rootCmd.Flags().StringSliceVar(&pk, "pk", pk, "primary key to query, format: [key:value] (if empty, scan is implied)")
+	rootCmd.Flags().StringSliceVar(&sk, "sk", sk, "sort key if any, format: [key:value] (begins_with will be used if not empty)")
 	rootCmd.Flags().StringSliceVar(&incols, "attr", incols, "attributes (columns) to include")
 	rootCmd.Flags().BoolVar(&describe, "describe", describe, "if true, describe the table only")
 	rootCmd.Flags().BoolVar(&nosort, "nosort", nosort, "if true, don't sort the attributes")
