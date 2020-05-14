@@ -89,7 +89,7 @@ By default, the length of all cell items in the output table are concatenated up
 PR's are welcome!
 
 - [ ] Handling data tabulation for fullwidth characters (i.e. Japanese, Chinese, etc.)
-- [ ] Better handling of JSON values in cells
+- [ ] Better handling of JSON, maps, and base64-encoded(?) values in cells
 - [ ] Query secondary indeces
 - [ ] Support for other sort key types
 - [ ] Config file support
