@@ -32,6 +32,7 @@ var (
 	incols   []string
 	describe bool
 	nosort   bool
+	del      bool
 	out      string
 	maxlen   int
 
@@ -200,6 +201,58 @@ func ScanItems(svc *dynamodb.DynamoDB, table string) ([]map[string]*dynamodb.Att
 	return ret, nil
 }
 
+func DeleteItem(svc *dynamodb.DynamoDB, table, pk, sk string) error {
+	v1 := strings.Split(pk, ":")
+	v2 := strings.Split(sk, ":")
+	start := time.Now()
+	var input *dynamodb.DeleteItemInput
+	if sk == "" {
+		input = &dynamodb.DeleteItemInput{
+			TableName: aws.String(table),
+			Key: map[string]*dynamodb.AttributeValue{
+				v1[0]: {S: aws.String(v1[1])},
+			},
+		}
+	} else {
+		input = &dynamodb.DeleteItemInput{
+			TableName: aws.String(table),
+			Key: map[string]*dynamodb.AttributeValue{
+				v1[0]: {S: aws.String(v1[1])},
+				v2[0]: {S: aws.String(v2[1])},
+			},
+		}
+	}
+
+	var rerr error
+
+	// Our retriable function.
+	op := func() error {
+		_, err := svc.DeleteItem(input)
+		rerr = err
+		if err != nil {
+			if aerr, ok := err.(awserr.Error); ok {
+				switch aerr.Code() {
+				case dynamodb.ErrCodeProvisionedThroughputExceededException:
+					return err // will cause retry with backoff
+				}
+			}
+		}
+
+		return nil // final err is rerr
+	}
+
+	err := backoff.Retry(op, backoff.NewExponentialBackOff())
+	if err != nil {
+		return fmt.Errorf("DeleteItem failed after %v: %w", time.Since(start), err)
+	}
+
+	if rerr != nil {
+		return fmt.Errorf("DeleteItem failed: %w", rerr)
+	}
+
+	return nil
+}
+
 func run(cmd *cobra.Command, args []string) error {
 	log.SetFlags(0)
 	log.SetOutput(os.Stdout)
@@ -208,11 +261,15 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Validate pk and sk inputs.
+	var pklbl, sklbl string
 	for _, v := range pk {
 		if v != "" {
 			if !strings.Contains(v, ":") {
 				return fmt.Errorf("invalid --pk format: %v", v)
 			}
+
+			// Expected to be the same across all inputs.
+			pklbl = strings.Split(v, ":")[0]
 		}
 	}
 
@@ -221,6 +278,9 @@ func run(cmd *cobra.Command, args []string) error {
 			if !strings.Contains(v, ":") {
 				return fmt.Errorf("invalid --sk format: %v", v)
 			}
+
+			// Expected to be the same across all inputs.
+			sklbl = strings.Split(v, ":")[0]
 		}
 	}
 
@@ -251,12 +311,6 @@ func run(cmd *cobra.Command, args []string) error {
 	var b bytes.Buffer
 	bw := bufio.NewWriter(&b)
 	h := tabwriter.NewWriter(bw, 0, 4, 4, ' ', 0)
-	defer func() {
-		h.Flush()
-		bw.Flush()
-		fmt.Printf("%v", b.String())
-	}()
-
 	addLine := func(w *tabwriter.Writer, v []interface{}) {
 		var f string
 		for i, vv := range v {
@@ -279,15 +333,25 @@ func run(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(w, f)
 	}
 
-	if describe {
-		t, err := svc.DescribeTable(&dynamodb.DescribeTableInput{
-			TableName: aws.String(args[0]),
-		})
+	t, err := svc.DescribeTable(&dynamodb.DescribeTableInput{
+		TableName: aws.String(args[0]),
+	})
 
-		if err != nil {
-			return err
+	if err != nil {
+		return err
+	}
+
+	for _, v := range t.Table.KeySchema {
+		if *v.KeyType == "HASH" {
+			pklbl = *v.AttributeName
 		}
 
+		if *v.KeyType == "RANGE" {
+			sklbl = *v.AttributeName
+		}
+	}
+
+	if describe {
 		log.Println(t)
 		log.Println("")
 	}
@@ -357,6 +421,7 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	addLine(h, lbls)
+	todel := make(map[string]string) // key=sk, val=pk
 	for _, maps := range m {
 		var toadd []interface{}
 		for _, k := range sortedlbl {
@@ -366,7 +431,30 @@ func run(cmd *cobra.Command, args []string) error {
 				toadd = append(toadd, "-")
 			}
 		}
+
 		addLine(h, toadd)
+
+		// Setup the items to delete, if set.
+		if del {
+			if _, ok := maps[sklbl]; ok {
+				todel[fmt.Sprintf("%v", maps[sklbl])] = fmt.Sprintf("%v", maps[pklbl])
+			}
+		}
+	}
+
+	h.Flush()
+	bw.Flush()
+	log.Printf("%v", b.String())
+
+	if del {
+		for k, v := range todel {
+			err = DeleteItem(svc, args[0], pklbl+":"+v, sklbl+":"+k)
+			if err != nil {
+				log.Printf("delete failed: [key:%v, sortkey:%v] %v\n", v, k, err)
+			} else {
+				log.Printf("deleted: key:%v, sortkey:%v\n", v, k)
+			}
+		}
 	}
 
 	return nil
@@ -377,12 +465,13 @@ func main() {
 	rootCmd.Flags().StringVar(&region, "region", os.Getenv("AWS_REGION"), "region")
 	rootCmd.Flags().StringVar(&key, "key", os.Getenv("AWS_ACCESS_KEY_ID"), "access key")
 	rootCmd.Flags().StringVar(&secret, "secret", os.Getenv("AWS_SECRET_ACCESS_KEY"), "secret access key")
-	rootCmd.Flags().StringVar(&rolearn, "rolearn", os.Getenv("ROLE_ARN"), "if not empty, the role to assume using the provided key/secret")
+	rootCmd.Flags().StringVar(&rolearn, "rolearn", os.Getenv("ROLE_ARN"), "if set, the role to assume using the provided key/secret")
 	rootCmd.Flags().StringSliceVar(&pk, "pk", pk, "primary key to query, format: [key:value] (if empty, scan is implied)")
 	rootCmd.Flags().StringSliceVar(&sk, "sk", sk, "sort key if any, format: [key:value] (begins_with will be used if not empty)")
 	rootCmd.Flags().StringSliceVar(&incols, "attr", incols, "attributes (columns) to include")
-	rootCmd.Flags().BoolVar(&describe, "describe", describe, "if true, describe the table only")
-	rootCmd.Flags().BoolVar(&nosort, "nosort", nosort, "if true, don't sort the attributes")
+	rootCmd.Flags().BoolVar(&describe, "describe", describe, "if set, describe the table only")
+	rootCmd.Flags().BoolVar(&nosort, "nosort", nosort, "if set, don't sort the attributes")
+	rootCmd.Flags().BoolVar(&del, "delete", del, "if set, delete the items that are queried")
 	// rootCmd.Flags().StringVar(&out, "out", out, "if provided, output to csv with value as filename (.csv appended)")
 	rootCmd.Flags().IntVar(&maxlen, "maxlen", 20, "max len of each cell")
 	rootCmd.Execute()
