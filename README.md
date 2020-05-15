@@ -95,4 +95,4 @@ PR's are welcome!
 - [ ] Config file support
 - [ ] Package for Windows
 - [ ] Output to CSV (ongoing)
-- [ ] Add `--delete` option to delete the queried data (ongoing)
+- [x] Add `--delete` option to delete the queried data (ongoing)
