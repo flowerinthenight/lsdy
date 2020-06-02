@@ -37,6 +37,9 @@ AWS_SECRET_ACCESS_KEY
 # Optional:
 ROLE_ARN
 
+# Authenticate using id/secret flags:
+$ lsdy --region=xxx --key=xxx --secret=xxx
+
 # When ROLE_ARN is set, it will assume this role using the provided key/secret pair.
 ```
 
