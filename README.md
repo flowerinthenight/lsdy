@@ -99,5 +99,5 @@ PR's are welcome!
 - [ ] Support for other sort key types
 - [ ] Config file support
 - [ ] Package for Windows
-- [ ] Output to CSV (ongoing)
+- [x] Output to CSV - added with the `--csv` flag
 - [x] Add `--delete` option to delete the queried data
