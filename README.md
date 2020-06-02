@@ -40,7 +40,9 @@ ROLE_ARN
 # Authenticate using id/secret flags:
 $ lsdy --region=xxx --key=xxx --secret=xxx
 
-# When ROLE_ARN is set, it will assume this role using the provided key/secret pair.
+# Authenticate by assuming a role ARN, in which case, id/secret should have the
+# AssumeRole permissions. Using flags:
+$ lsdy --region=xxx --key=xxx --secret=xxx --rolearn=xxx
 ```
 
 To query a table using a primary key:
