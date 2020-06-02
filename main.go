@@ -33,7 +33,8 @@ var (
 	describe bool
 	nosort   bool
 	del      bool
-	out      string
+	csv      string
+	sep      string
 	maxlen   int
 
 	rootCmd = &cobra.Command{
@@ -299,8 +300,8 @@ func run(cmd *cobra.Command, args []string) error {
 
 	var err error
 	var f *os.File
-	if out != "" {
-		f, err = os.Create(fmt.Sprintf("%v.csv", out))
+	if csv != "" {
+		f, err = os.Create(fmt.Sprintf("%v", csv))
 		if err != nil {
 			return err
 		}
@@ -416,23 +417,38 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	var lbls []interface{}
+	var slbls []string
 	for _, v := range sortedlbl {
 		lbls = append(lbls, v)
+		slbls = append(slbls, fmt.Sprintf("\"%v\"", v))
 	}
 
 	addLine(h, lbls)
+	if csv != "" {
+		fmt.Fprintf(f, strings.Join(slbls, sep))
+		fmt.Fprintf(f, "\n")
+	}
+
 	todel := make(map[string]string) // key=sk, val=pk
 	for _, maps := range m {
 		var toadd []interface{}
+		var stoadd []string
 		for _, k := range sortedlbl {
 			if _, ok := maps[k]; ok {
 				toadd = append(toadd, maps[k])
+				stoadd = append(stoadd, fmt.Sprintf("\"%v\"", maps[k]))
 			} else {
 				toadd = append(toadd, "-")
+				stoadd = append(stoadd, "-")
 			}
 		}
 
+		// Add line to tab-based table.
 		addLine(h, toadd)
+		if csv != "" {
+			fmt.Fprintf(f, strings.Join(stoadd, sep))
+			fmt.Fprintf(f, "\n")
+		}
 
 		// Setup the items to delete, if set.
 		if del {
@@ -472,7 +488,8 @@ func main() {
 	rootCmd.Flags().BoolVar(&describe, "describe", describe, "if set, describe the table only")
 	rootCmd.Flags().BoolVar(&nosort, "nosort", nosort, "if set, don't sort the attributes")
 	rootCmd.Flags().BoolVar(&del, "delete", del, "if set, delete the items that are queried")
-	// rootCmd.Flags().StringVar(&out, "out", out, "if provided, output to csv with value as filename (.csv appended)")
+	rootCmd.Flags().StringVar(&csv, "csv", csv, "if provided, output to csv with value as filename")
+	rootCmd.Flags().StringVar(&sep, "sep", ",", "csv separator")
 	rootCmd.Flags().IntVar(&maxlen, "maxlen", 20, "max len of each cell")
 	rootCmd.Execute()
 }
