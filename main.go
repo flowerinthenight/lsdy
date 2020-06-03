@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"sort"
 	"strings"
-	"text/tabwriter"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -19,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/cenkalti/backoff"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -32,6 +30,7 @@ var (
 	incols   []string
 	describe bool
 	nosort   bool
+	noborder bool
 	del      bool
 	csv      string
 	sep      string
@@ -309,35 +308,20 @@ func run(cmd *cobra.Command, args []string) error {
 		defer f.Close()
 	}
 
-	var b bytes.Buffer
-	bw := bufio.NewWriter(&b)
-	h := tabwriter.NewWriter(bw, 0, 4, 4, ' ', 0)
-	addLine := func(w *tabwriter.Writer, v []interface{}) {
-		var f string
-		for i, vv := range v {
-			val := fmt.Sprintf("%v", vv)
-			if val == "" {
-				val = "-"
-			}
-
-			if len(val) > maxlen {
-				val = val[:maxlen]
-			}
-
-			f += val
-			if i < len(v)-1 {
-				f += "\t"
-			}
-		}
-
-		f += "\n"
-		fmt.Fprintf(w, f)
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetAutoFormatHeaders(false)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetColWidth(maxlen)
+	if noborder {
+		table.SetBorder(false)
+		table.SetHeaderLine(false)
+		table.SetColumnSeparator(" ")
+		table.SetTablePadding("")
 	}
 
-	t, err := svc.DescribeTable(&dynamodb.DescribeTableInput{
-		TableName: aws.String(args[0]),
-	})
-
+	// Get table information.
+	t, err := svc.DescribeTable(&dynamodb.DescribeTableInput{TableName: aws.String(args[0])})
 	if err != nil {
 		return err
 	}
@@ -416,37 +400,41 @@ func run(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	var lbls []interface{}
-	var slbls []string
+	var hdrs []string
+	var qhdrs []string
 	for _, v := range sortedlbl {
-		lbls = append(lbls, v)
-		slbls = append(slbls, fmt.Sprintf("\"%v\"", v))
+		hdrs = append(hdrs, fmt.Sprintf("%v", v))
+		qhdrs = append(qhdrs, fmt.Sprintf("\"%v\"", v))
 	}
 
-	addLine(h, lbls)
+	table.SetHeader(hdrs)
 	if csv != "" {
-		fmt.Fprintf(f, strings.Join(slbls, sep))
+		fmt.Fprintf(f, strings.Join(qhdrs, sep))
 		fmt.Fprintf(f, "\n")
 	}
 
 	todel := make(map[string]string) // key=sk, val=pk
 	for _, maps := range m {
-		var toadd []interface{}
-		var stoadd []string
+		var rows []string
+		var qrows []string
 		for _, k := range sortedlbl {
 			if _, ok := maps[k]; ok {
-				toadd = append(toadd, maps[k])
-				stoadd = append(stoadd, fmt.Sprintf("\"%v\"", maps[k]))
+				row := fmt.Sprintf("%v", maps[k])
+				if len(row) > maxlen {
+					row = row[:maxlen]
+				}
+
+				rows = append(rows, row)
+				qrows = append(qrows, fmt.Sprintf("\"%v\"", maps[k]))
 			} else {
-				toadd = append(toadd, "-")
-				stoadd = append(stoadd, "-")
+				rows = append(rows, "-")
+				qrows = append(qrows, "-")
 			}
 		}
 
-		// Add line to tab-based table.
-		addLine(h, toadd)
+		table.Append(rows)
 		if csv != "" {
-			fmt.Fprintf(f, strings.Join(stoadd, sep))
+			fmt.Fprintf(f, strings.Join(qrows, sep))
 			fmt.Fprintf(f, "\n")
 		}
 
@@ -458,10 +446,10 @@ func run(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	h.Flush()
-	bw.Flush()
-	log.Printf("%v", b.String())
+	// Final table render.
+	table.Render()
 
+	// If there are items to delete.
 	if del {
 		for k, v := range todel {
 			err = DeleteItem(svc, args[0], pklbl+":"+v, sklbl+":"+k)
@@ -487,9 +475,10 @@ func main() {
 	rootCmd.Flags().StringSliceVar(&incols, "attr", incols, "attributes (columns) to include")
 	rootCmd.Flags().BoolVar(&describe, "describe", describe, "if set, describe the table only")
 	rootCmd.Flags().BoolVar(&nosort, "nosort", nosort, "if set, don't sort the attributes")
+	rootCmd.Flags().BoolVar(&noborder, "noborder", noborder, "if set, remove table borders")
 	rootCmd.Flags().BoolVar(&del, "delete", del, "if set, delete the items that are queried")
 	rootCmd.Flags().StringVar(&csv, "csv", csv, "if provided, output to csv with value as filename")
 	rootCmd.Flags().StringVar(&sep, "sep", ",", "csv separator")
-	rootCmd.Flags().IntVar(&maxlen, "maxlen", 20, "max len of each cell")
+	rootCmd.Flags().IntVar(&maxlen, "maxlen", tablewriter.MAX_ROW_WIDTH, "max len of each cell")
 	rootCmd.Execute()
 }
