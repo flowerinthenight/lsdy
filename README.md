@@ -86,7 +86,7 @@ $ lsdy TABLE_NAME --describe
 ```
 _Warning!_ At the moment, `--describe` will cause a table scan if the `--pk` flag is not set. For massive tables, it's probably a good idea to supply the `--pk` flag, in which case, it will only query the attributes from that key.
 
-By default, the length of all cell items in the output table are concatenated up to `--maxlen`.
+By default, the maximum length of all cell items in the output table is set by the `--maxlen` flag.
 
 ## Need help
 PR's are welcome!
