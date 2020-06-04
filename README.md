@@ -96,7 +96,7 @@ PR's are welcome!
 - [ ] Query secondary indeces
 - [ ] Support for other sort key types
 - [ ] Config file support
-- [x] _Package for Windows_ - can use WSL for now
+- [x] ~~Package for Windows~~ - can use WSL for now
 - [x] Output to CSV - added with the `--csv` flag
 - [x] Add `--delete` option to delete the queried data
 - [x] Add `--limit` option in query (Scan and Query)
