@@ -6,7 +6,7 @@
 
 ## Installation
 
-Using [Homebrew](https://brew.sh/):
+Using [Homebrew](https://brew.sh/) (applies to Linux, OSX, and [WSL](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux)):
 ```bash
 $ brew tap flowerinthenight/tap
 $ brew install lsdy
@@ -96,7 +96,7 @@ PR's are welcome!
 - [ ] Query secondary indeces
 - [ ] Support for other sort key types
 - [ ] Config file support
-- [ ] Package for Windows
+- [x] _Package for Windows_ - can use WSL for now
 - [x] Output to CSV - added with the `--csv` flag
 - [x] Add `--delete` option to delete the queried data
 - [x] Add `--limit` option in query (Scan and Query)
