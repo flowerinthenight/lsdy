@@ -99,3 +99,4 @@ PR's are welcome!
 - [ ] Package for Windows
 - [x] Output to CSV - added with the `--csv` flag
 - [x] Add `--delete` option to delete the queried data
+- [x] Add `--limit` option in query (Scan and Query)
