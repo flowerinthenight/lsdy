@@ -28,6 +28,7 @@ var (
 	pk       []string
 	sk       []string
 	incols   []string
+	limit    int64
 	describe bool
 	nosort   bool
 	noborder bool
@@ -102,12 +103,19 @@ func query(svc *dynamodb.DynamoDB, table string, input *dynamodb.QueryInput) ([]
 			lastKey = res.LastEvaluatedKey
 			more = true
 		}
+
+		if input.Limit != nil {
+			if int64(len(ret)) >= *input.Limit {
+				more = false
+				lastKey = nil
+			}
+		}
 	}
 
 	return ret, nil
 }
 
-func GetItems(svc *dynamodb.DynamoDB, table, pk, sk string) ([]map[string]*dynamodb.AttributeValue, error) {
+func GetItems(svc *dynamodb.DynamoDB, table, pk, sk string, limit ...int64) ([]map[string]*dynamodb.AttributeValue, error) {
 	v1 := strings.Split(pk, ":")
 	v2 := strings.Split(sk, ":")
 	var input *dynamodb.QueryInput
@@ -122,6 +130,10 @@ func GetItems(svc *dynamodb.DynamoDB, table, pk, sk string) ([]map[string]*dynam
 			},
 			ScanIndexForward: aws.Bool(false), // descending order
 		}
+
+		if len(limit) > 0 {
+			input.Limit = aws.Int64(limit[0])
+		}
 	} else {
 		input = &dynamodb.QueryInput{
 			TableName:              aws.String(table),
@@ -130,6 +142,10 @@ func GetItems(svc *dynamodb.DynamoDB, table, pk, sk string) ([]map[string]*dynam
 				":pk": {S: aws.String(v1[1])},
 			},
 			ScanIndexForward: aws.Bool(false), // descending order
+		}
+
+		if len(limit) > 0 {
+			input.Limit = aws.Int64(limit[0])
 		}
 	}
 
@@ -149,15 +165,19 @@ func GetGsiItems(svc *dynamodb.DynamoDB, table, index, key, value string) ([]map
 	return query(svc, table, &input)
 }
 
-func ScanItems(svc *dynamodb.DynamoDB, table string) ([]map[string]*dynamodb.AttributeValue, error) {
+func ScanItems(svc *dynamodb.DynamoDB, table string, limit ...int64) ([]map[string]*dynamodb.AttributeValue, error) {
 	start := time.Now()
 	ret := []map[string]*dynamodb.AttributeValue{}
 	var lastKey map[string]*dynamodb.AttributeValue
 	more := true
 
+	in := dynamodb.ScanInput{TableName: aws.String(table)}
+	if len(limit) > 0 {
+		in.Limit = aws.Int64(limit[0])
+	}
+
 	// Could be paginated.
 	for more {
-		in := dynamodb.ScanInput{TableName: aws.String(table)}
 		if lastKey != nil {
 			in.ExclusiveStartKey = lastKey
 		}
@@ -195,6 +215,13 @@ func ScanItems(svc *dynamodb.DynamoDB, table string) ([]map[string]*dynamodb.Att
 		if res.LastEvaluatedKey != nil {
 			lastKey = res.LastEvaluatedKey
 			more = true
+		}
+
+		if in.Limit != nil {
+			if int64(len(ret)) >= *in.Limit {
+				more = false
+				lastKey = nil
+			}
 		}
 	}
 
@@ -352,16 +379,27 @@ func run(cmd *cobra.Command, args []string) error {
 				}
 			}
 
-			qitems, err := GetItems(svc, args[0], v, vv)
+			var tmp []map[string]*dynamodb.AttributeValue
+			if limit > 0 {
+				tmp, err = GetItems(svc, args[0], v, vv, limit)
+			} else {
+				tmp, err = GetItems(svc, args[0], v, vv)
+			}
+
 			if err != nil {
 				return err
 			}
 
 			// Accumulate results to items.
-			items = append(items, qitems...)
+			items = append(items, tmp...)
 		}
 	} else {
-		items, err = ScanItems(svc, args[0])
+		if limit > 0 {
+			items, err = ScanItems(svc, args[0], limit)
+		} else {
+			items, err = ScanItems(svc, args[0])
+		}
+
 		if err != nil {
 			return err
 		}
@@ -474,6 +512,7 @@ func main() {
 	rootCmd.Flags().StringSliceVar(&sk, "sk", sk, "sort key if any, format: [key:value] (begins_with will be used if not empty)")
 	rootCmd.Flags().StringSliceVar(&incols, "attr", incols, "attributes (columns) to include")
 	rootCmd.Flags().BoolVar(&describe, "describe", describe, "if set, describe the table only")
+	rootCmd.Flags().Int64Var(&limit, "limit", limit, "max number of output for query/scan")
 	rootCmd.Flags().BoolVar(&nosort, "nosort", nosort, "if set, don't sort the attributes")
 	rootCmd.Flags().BoolVar(&noborder, "noborder", noborder, "if set, remove table borders")
 	rootCmd.Flags().BoolVar(&del, "delete", del, "if set, delete the items that are queried")
