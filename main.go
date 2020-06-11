@@ -459,46 +459,47 @@ func run(cmd *cobra.Command, args []string) error {
 		var rows []string
 		var qrows []string
 		for i, k := range sortedlbl {
-			if _, ok := maps[k]; ok {
-				row := fmt.Sprintf("%v", maps[k])
-				for _, decv := range b64dec {
-					sp := strings.Split(decv, ":")
-					switch {
-					case len(sp) == 1: // '0', '2', ...
-						idx, _ := strconv.Atoi(sp[0])
-						if idx == i {
-							data, err := base64.StdEncoding.DecodeString(row)
-							if err == nil {
-								row = string(data)
-							}
+			if _, ok := maps[k]; !ok {
+				rows = append(rows, "-")
+				qrows = append(qrows, "-")
+				continue
+			}
+
+			row := fmt.Sprintf("%v", maps[k])
+			for _, decv := range b64dec {
+				sp := strings.Split(decv, ":")
+				switch {
+				case len(sp) == 1: // '0', '2', ...
+					idx, _ := strconv.Atoi(sp[0])
+					if idx == i {
+						data, err := base64.StdEncoding.DecodeString(row)
+						if err == nil {
+							row = string(data)
 						}
-					case len(sp) == 3: // '1:|:3'
-						idx, _ := strconv.Atoi(sp[0])
-						sidx, _ := strconv.Atoi(sp[2])
-						if idx == i {
-							sr := strings.Split(row, sp[1])
-							if len(sr) > 1 && sidx < len(sr) {
-								data, err := base64.StdEncoding.DecodeString(sr[sidx])
-								if err == nil {
-									sr[sidx] = string(data)
-									row = strings.Join(sr, sp[1])
-								}
+					}
+				case len(sp) == 3: // '1:|:3'
+					idx, _ := strconv.Atoi(sp[0])
+					sidx, _ := strconv.Atoi(sp[2])
+					if idx == i {
+						sr := strings.Split(row, sp[1])
+						if len(sr) > 1 && sidx < len(sr) {
+							data, err := base64.StdEncoding.DecodeString(sr[sidx])
+							if err == nil {
+								sr[sidx] = string(data)
+								row = strings.Join(sr, sp[1])
 							}
 						}
 					}
 				}
-
-				if len(row) > maxlen {
-					row = row[:maxlen]
-				}
-
-				rows = append(rows, row)
-				row = strings.Replace(row, "\"", "'", -1)
-				qrows = append(qrows, fmt.Sprintf("\"%v\"", row))
-			} else {
-				rows = append(rows, "-")
-				qrows = append(qrows, "-")
 			}
+
+			if len(row) > maxlen {
+				row = row[:maxlen]
+			}
+
+			rows = append(rows, row)
+			row = strings.Replace(row, "\"", "'", -1)
+			qrows = append(qrows, fmt.Sprintf("\"%v\"", row))
 		}
 
 		table.Append(rows)
