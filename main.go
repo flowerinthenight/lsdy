@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -30,6 +31,7 @@ var (
 	pk       []string
 	sk       []string
 	incols   []string
+	contains []string
 	limit    int64
 	describe bool
 	nosort   bool
@@ -456,6 +458,7 @@ func run(cmd *cobra.Command, args []string) error {
 
 	todel := make(map[string]string) // key=sk, val=pk
 	for _, maps := range m {
+		include := true
 		var rows []string
 		var qrows []string
 		for i, k := range sortedlbl {
@@ -493,13 +496,49 @@ func run(cmd *cobra.Command, args []string) error {
 				}
 			}
 
+			for _, fltr := range contains {
+				cc := strings.Split(fltr, ":") // '0:[[!]regex:]expr'
+				switch {
+				case len(cc) == 2: // not regex
+					idx, _ := strconv.Atoi(cc[0])
+					if idx == i {
+						if cc[1][0] == '^' {
+							if strings.Contains(row, cc[1][1:]) {
+								include = false
+							}
+						} else {
+							include = false
+							if strings.Contains(row, cc[1]) {
+								include = true
+							}
+						}
+					}
+				case len(cc) == 3: // regex version
+					idx, _ := strconv.Atoi(cc[0])
+					if idx == i {
+						re := regexp.MustCompile(cc[2])
+						match := re.MatchString(row)
+						switch cc[1] {
+						case "^regex":
+							include = !match
+						case "regex":
+							include = match
+						}
+					}
+				}
+			}
+
+			rows = append(rows, row)
 			if len(row) > maxlen {
 				row = row[:maxlen]
 			}
 
-			rows = append(rows, row)
 			row = strings.Replace(row, "\"", "'", -1)
 			qrows = append(qrows, fmt.Sprintf("\"%v\"", row))
+		}
+
+		if !include {
+			continue
 		}
 
 		table.Append(rows)
@@ -543,6 +582,7 @@ func main() {
 	rootCmd.Flags().StringSliceVar(&pk, "pk", pk, "primary key to query, format: [key:value] (if empty, scan is implied)")
 	rootCmd.Flags().StringSliceVar(&sk, "sk", sk, "sort key if any, format: [key:value] (begins_with will be used if not empty)")
 	rootCmd.Flags().StringSliceVar(&incols, "attr", incols, "attributes (columns) to include")
+	rootCmd.Flags().StringSliceVar(&contains, "contains", contains, "filter output, '^' means exclude, fmt: <col-index:[[^]regex:]expr>, i.e. '1:^regex:my.*'")
 	rootCmd.Flags().BoolVar(&describe, "describe", describe, "if set, describe the table only")
 	rootCmd.Flags().Int64Var(&limit, "limit", limit, "max number of output for query/scan")
 	rootCmd.Flags().BoolVar(&nosort, "nosort", nosort, "if set, don't sort the attributes")
