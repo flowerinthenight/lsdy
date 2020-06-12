@@ -28,6 +28,8 @@ $ lsdy -h
 
 To authenticate to AWS, this tool looks for the following environment variables (can be set by cmdline args as well):
 ```bash
+# If --region, --key, --secret, and optionally, --rolearn are not provided, the tool
+# will look for these environment variables:
 AWS_REGION
 AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
