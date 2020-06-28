@@ -120,7 +120,7 @@ func query(svc *dynamodb.DynamoDB, table string, input *dynamodb.QueryInput) ([]
 	return ret, nil
 }
 
-func GetItems(svc *dynamodb.DynamoDB, table, pk, sk string, limit ...int64) ([]map[string]*dynamodb.AttributeValue, error) {
+func getItems(svc *dynamodb.DynamoDB, table, pk, sk string, limit ...int64) ([]map[string]*dynamodb.AttributeValue, error) {
 	v1 := strings.Split(pk, ":")
 	v2 := strings.Split(sk, ":")
 	var input *dynamodb.QueryInput
@@ -157,7 +157,7 @@ func GetItems(svc *dynamodb.DynamoDB, table, pk, sk string, limit ...int64) ([]m
 	return query(svc, table, input)
 }
 
-func GetGsiItems(svc *dynamodb.DynamoDB, table, index, key, value string) ([]map[string]*dynamodb.AttributeValue, error) {
+func getGsiItems(svc *dynamodb.DynamoDB, table, index, key, value string) ([]map[string]*dynamodb.AttributeValue, error) {
 	input := dynamodb.QueryInput{
 		TableName:              aws.String(table),
 		IndexName:              aws.String(index),
@@ -170,7 +170,7 @@ func GetGsiItems(svc *dynamodb.DynamoDB, table, index, key, value string) ([]map
 	return query(svc, table, &input)
 }
 
-func ScanItems(svc *dynamodb.DynamoDB, table string, limit ...int64) ([]map[string]*dynamodb.AttributeValue, error) {
+func scanItems(svc *dynamodb.DynamoDB, table string, limit ...int64) ([]map[string]*dynamodb.AttributeValue, error) {
 	start := time.Now()
 	ret := []map[string]*dynamodb.AttributeValue{}
 	var lastKey map[string]*dynamodb.AttributeValue
@@ -233,7 +233,7 @@ func ScanItems(svc *dynamodb.DynamoDB, table string, limit ...int64) ([]map[stri
 	return ret, nil
 }
 
-func DeleteItem(svc *dynamodb.DynamoDB, table, pk, sk string) error {
+func deleteItem(svc *dynamodb.DynamoDB, table, pk, sk string) error {
 	v1 := strings.Split(pk, ":")
 	v2 := strings.Split(sk, ":")
 	start := time.Now()
@@ -386,9 +386,9 @@ func run(cmd *cobra.Command, args []string) error {
 
 			var tmp []map[string]*dynamodb.AttributeValue
 			if limit > 0 {
-				tmp, err = GetItems(svc, args[0], v, vv, limit)
+				tmp, err = getItems(svc, args[0], v, vv, limit)
 			} else {
-				tmp, err = GetItems(svc, args[0], v, vv)
+				tmp, err = getItems(svc, args[0], v, vv)
 			}
 
 			if err != nil {
@@ -400,9 +400,9 @@ func run(cmd *cobra.Command, args []string) error {
 		}
 	} else {
 		if limit > 0 {
-			items, err = ScanItems(svc, args[0], limit)
+			items, err = scanItems(svc, args[0], limit)
 		} else {
-			items, err = ScanItems(svc, args[0])
+			items, err = scanItems(svc, args[0])
 		}
 
 		if err != nil {
@@ -561,7 +561,7 @@ func run(cmd *cobra.Command, args []string) error {
 	// If there are items to delete.
 	if del {
 		for k, v := range todel {
-			err = DeleteItem(svc, args[0], pklbl+":"+v, sklbl+":"+k)
+			err = deleteItem(svc, args[0], pklbl+":"+v, sklbl+":"+k)
 			if err != nil {
 				log.Printf("delete failed: [key:%v, sortkey:%v] %v\n", v, k, err)
 			} else {
