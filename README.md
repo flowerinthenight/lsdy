@@ -93,14 +93,14 @@ By default, the maximum length of all cell items in the output table is set by t
 ## Need help
 PR's are welcome!
 
-- [x] Handling data tabulation for fullwidth characters (i.e. Japanese, Chinese, etc.) - use [tablewriter](https://github.com/olekukonko/tablewriter)
-- [x] Filtering/exclusion support -- added with the `--contains` flag
+- [x] ~~Handling data tabulation for fullwidth characters (i.e. Japanese, Chinese, etc.)~~ - use [tablewriter](https://github.com/olekukonko/tablewriter)
+- [x] ~~Filtering/exclusion support~~ - added with the `--contains` flag
 - [ ] Better handling of JSON, map values in cells
-- [x] Better handling of base64-encoded values in cells - added with the `--decb64` flag
+- [x] ~~Better handling of base64-encoded values in cells~~ - added with the `--decb64` flag
 - [ ] Query secondary indeces
 - [ ] Support for other sort key types
 - [ ] Config file support
 - [x] ~~Package for Windows~~ - can use WSL for now
-- [x] Output to CSV - added with the `--csv` flag
-- [x] Add `--delete` option to delete the queried data
-- [x] Add `--limit` option in query (Scan and Query)
+- [x] ~~Output to CSV~~ - added with the `--csv` flag
+- [x] ~~Add `--delete` option to delete the queried data~~
+- [x] ~~Add `--limit` option in query (Scan and Query)~~
