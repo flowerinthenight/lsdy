@@ -96,7 +96,7 @@ PR's are welcome!
 - [x] Handling data tabulation for fullwidth characters (i.e. Japanese, Chinese, etc.) - use [tablewriter](https://github.com/olekukonko/tablewriter)
 - [x] Filtering/exclusion support -- added with the `--contains` flag
 - [ ] Better handling of JSON, map values in cells
-- [x] Better of base64-encoded values in cells - added with the `--decb64` flag
+- [x] Better handling of base64-encoded values in cells - added with the `--decb64` flag
 - [ ] Query secondary indeces
 - [ ] Support for other sort key types
 - [ ] Config file support
