@@ -48,9 +48,12 @@ var (
 		Long: `DynamoDB query tool.
 
 To authenticate to AWS, you can set the following environment variables:
+  [required]
   AWS_REGION
   AWS_ACCESS_KEY_ID
   AWS_SECRET_ACCESS_KEY
+
+  [optional]
   ROLE_ARN
 
 You can also specify them using the provided flags (see -h). If ROLE_ARN (--rolearn)
