@@ -1,0 +1,33 @@
+builds:
+- id: "lsdy"
+  binary: lsdy
+  goos:
+  - linux
+  - darwin
+  goarch:
+  - amd64
+checksum:
+  name_template: 'checksums.txt'
+dist: /tmp/lsdy/dist
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+release:
+  github:
+    owner: flowerinthenight
+    name: lsdy
+brews:
+- tap:
+    owner: flowerinthenight
+    name: homebrew-tap
+  name: lsdy
+  homepage: "https://github.com/flowerinthenight/lsdy"
+  description: "DynamoDB query tool."
+  folder: Formula
+  install: |
+    bin.install "lsdy"
+  test: |
+    assert_match /DynamoDB query tool/, shell_output("#{bin}/lsdy -h", 0)
