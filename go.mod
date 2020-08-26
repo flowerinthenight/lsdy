@@ -3,8 +3,9 @@ module github.com/flowerinthenight/lsdy
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.31.9
-	github.com/cenkalti/backoff v2.2.1+incompatible
+	github.com/aws/aws-sdk-go v1.34.10
+	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/flowerinthenight/libdy v1.0.0
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
