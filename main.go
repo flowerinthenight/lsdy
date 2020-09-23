@@ -229,15 +229,13 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	var hdrs []string
-	var qhdrs []string
 	for _, v := range sortedlbl {
 		hdrs = append(hdrs, fmt.Sprintf("%v", v))
-		qhdrs = append(qhdrs, fmt.Sprintf("\"%v\"", v))
 	}
 
 	table.SetHeader(hdrs)
 	if csvf != "" {
-		cw.Write(qhdrs)
+		cw.Write(hdrs)
 	}
 
 	todel := make(map[string]string) // key=sk, val=pk
@@ -318,7 +316,7 @@ func run(cmd *cobra.Command, args []string) error {
 			}
 
 			row = strings.Replace(row, "\"", "'", -1)
-			qrows = append(qrows, fmt.Sprintf("\"%v\"", row))
+			qrows = append(qrows, fmt.Sprintf("%v", row))
 		}
 
 		if !include {
