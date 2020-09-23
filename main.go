@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
@@ -35,8 +36,7 @@ var (
 	nosort   bool
 	noborder bool
 	del      bool
-	csv      string
-	sep      string
+	csvf     string
 	b64dec   []string
 	maxlen   int
 
@@ -109,13 +109,18 @@ func run(cmd *cobra.Command, args []string) error {
 
 	var err error
 	var f *os.File
-	if csv != "" {
-		f, err = os.Create(fmt.Sprintf("%v", csv))
+	var cw *csv.Writer
+	if csvf != "" {
+		f, err = os.Create(fmt.Sprintf("%v", csvf))
 		if err != nil {
 			return err
 		}
 
-		defer f.Close()
+		cw = csv.NewWriter(f)
+		defer func() {
+			cw.Flush()
+			f.Close()
+		}()
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -218,6 +223,8 @@ func run(cmd *cobra.Command, args []string) error {
 		for _, v := range sortedlbl {
 			log.Println("-", v)
 		}
+
+		// If describe, we're done at this point.
 		return nil
 	}
 
@@ -229,9 +236,8 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 
 	table.SetHeader(hdrs)
-	if csv != "" {
-		fmt.Fprintf(f, strings.Join(qhdrs, sep))
-		fmt.Fprintf(f, "\n")
+	if csvf != "" {
+		cw.Write(qhdrs)
 	}
 
 	todel := make(map[string]string) // key=sk, val=pk
@@ -320,9 +326,8 @@ func run(cmd *cobra.Command, args []string) error {
 		}
 
 		table.Append(rows)
-		if csv != "" {
-			fmt.Fprintf(f, strings.Join(qrows, sep))
-			fmt.Fprintf(f, "\n")
+		if csvf != "" {
+			cw.Write(qrows)
 		}
 
 		// Setup the items to delete, if set.
@@ -366,8 +371,7 @@ func main() {
 	rootCmd.Flags().BoolVar(&nosort, "nosort", nosort, "if set, don't sort the attributes")
 	rootCmd.Flags().BoolVar(&noborder, "noborder", noborder, "if set, remove table borders")
 	rootCmd.Flags().BoolVar(&del, "delete", del, "if set, delete the items that are queried")
-	rootCmd.Flags().StringVar(&csv, "csv", csv, "if provided, output to csv with value as filename")
-	rootCmd.Flags().StringVar(&sep, "sep", ",", "csv separator")
+	rootCmd.Flags().StringVar(&csvf, "csv", csvf, "if provided, output to csv with value as filename")
 	rootCmd.Flags().IntVar(&maxlen, "maxlen", tablewriter.MAX_ROW_WIDTH, "max len of each cell")
 	rootCmd.Flags().StringSliceVar(&b64dec, "decb64", b64dec, "decode base64-encoded sections, fmt: <col-index[:sep:split-index]>, i.e. '1', '1:|:3'")
 	rootCmd.Execute()
