@@ -1,5 +1,7 @@
 [![CircleCI](https://circleci.com/gh/flowerinthenight/lsdy/tree/master.svg?style=svg)](https://circleci.com/gh/flowerinthenight/lsdy/tree/master)
 
+**Active development for this tool will probably not continue since AWS just released PartiQL support for DynamoDB.**
+
 ## Overview
 
 `lsdy` is a tool for querying [DynamoDB](https://aws.amazon.com/dynamodb/) tables. It will attempt to display the values in a tabular form using all available attributes (by default, alphabetical order, left to right), unless specified. If `--pk` is specified, it will query the table with that specific primary key. For tables with sort keys, only string-based sort keys are supported at the moment. When the `--sk` flag is supplied, it will query all sort keys that begins with the flag value. An empty primary key implies a table scan.
