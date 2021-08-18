@@ -131,8 +131,9 @@ func run(cmd *cobra.Command, args []string) error {
 	if noborder {
 		table.SetBorder(false)
 		table.SetHeaderLine(false)
-		table.SetColumnSeparator(" ")
-		table.SetTablePadding("")
+		table.SetColumnSeparator("")
+		table.SetTablePadding("  ")
+		table.SetNoWhiteSpace(true)
 	}
 
 	// Get table information.
