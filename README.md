@@ -65,7 +65,7 @@ To query a table using multiple primary keys and optional sort key pair(s):
 $ lsdy TABLE_NAME --pk "id:ID0001" --pk "id:ID0002" --pk "id:ID9999"
 
 # Multiple primary keys with corresponding sort keys:
-$ lsdy TABLE_NAME --pk "id:ID0001,id:ID0002,id:ID9999" --sk "sortkey:AAA,sortkey:BBB,sortkey:CCC"
+$ lsdy TABLE_NAME --pk "id:ID0001,id:ID0002" --sk "sortkey:AAA,sortkey:BBB"
 
 # Multiple primary keys with only the first pk having a sortkey pair:
 $ lsdy TABLE_NAME --pk "id:ID0001,id:ID0002,id:ID9999" --sk "sortkey:AAA"
