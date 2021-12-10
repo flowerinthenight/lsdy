@@ -211,7 +211,7 @@ func run(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	for k, _ := range lbl {
+	for k := range lbl {
 		sortedlbl = append(sortedlbl, k)
 	}
 
