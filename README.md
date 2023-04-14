@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/flowerinthenight/lsdy/tree/master.svg?style=svg)](https://circleci.com/gh/flowerinthenight/lsdy/tree/master)
+[![main](https://github.com/flowerinthenight/lsdy/actions/workflows/main.yml/badge.svg)](https://github.com/flowerinthenight/lsdy/actions/workflows/main.yml)
 
 **Active development for this tool will probably not continue since AWS just released PartiQL support for DynamoDB.**
 
